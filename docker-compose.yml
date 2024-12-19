@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx:/usr/share/nginx/html
+    networks:
+      - web_network
+    depends_on:
+      - backend
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - web_network
+
+  backend:
+    build: ./backend
+    container_name: flask_backend
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgres://admin:password@postgres:5432/mydatabase
+    networks:
+      - web_network
+    depends_on:
+      - postgres
+
+networks:
+  web_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
